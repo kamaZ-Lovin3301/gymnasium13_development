@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Дневник - {{ student.last_name }} {{ student.first_name }}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .top-nav {
+            background: white;
+            border-radius: 15px;
+            padding: 15px 25px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 15px;
+        }
+
+        .nav-btn {
+            padding: 10px 20px;
+            border: none;
+            background: #f0f4f8;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #666;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-name {
+            color: #4a5568;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .user-avatar {
+            width: 45px;
+            height: 45px;
+            background: #667eea;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .user-avatar:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 10px rgba(102, 126, 234, 0.4);
+        }
+
+        .month-section {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .month-title {
+            font-size: 32px;
+            color: #2d3748;
+            margin-bottom: 20px;
+            font-weight: 300;
+            text-align: center;
+        }
+
+        .date-navigation {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        .nav-arrow {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 2px solid #e2e8f0;
+            background: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: #667eea;
+            transition: all 0.3s;
+        }
+
+        .nav-arrow:hover {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .date-circles {
+            display: flex;
+            gap: 10px;
+            flex: 1;
+            justify-content: center;
+            overflow-x: auto;
+            padding: 5px 0;
+        }
+
+        .date-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 2px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+            text-decoration: none;
+            color: #4a5568;
+            flex-shrink: 0;
+        }
+
+        .date-circle:hover {
+            border-color: #667eea;
+            color: #667eea;
+        }
+
+        .date-circle.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .schedule-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .schedule-title {
+            font-size: 24px;
+            color: #2d3748;
+            margin-bottom: 25px;
+            font-weight: 600;
+        }
+
+        .schedule-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0 10px;
+        }
+
+        .schedule-table th {
+            text-align: left;
+            padding: 15px;
+            color: #4a5568;
+            font-weight: 600;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .schedule-table td {
+            padding: 15px;
+            background: #f8fafc;
+            border-top: 1px solid #e2e8f0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .schedule-table td:first-child {
+            border-left: 1px solid #e2e8f0;
+            border-top-left-radius: 10px;
+            border-bottom-left-radius: 10px;
+        }
+
+        .schedule-table td:last-child {
+            border-right: 1px solid #e2e8f0;
+            border-top-right-radius: 10px;
+            border-bottom-right-radius: 10px;
+        }
+
+        .lesson-number {
+            background: #e2e8f0;
+            padding: 8px 15px;
+            border-radius: 20px;
+            display: inline-block;
+            font-weight: 600;
+            color: #4a5568;
+            min-width: 40px;
+            text-align: center;
+        }
+
+        .subject-name {
+            background: #edf2f7;
+            padding: 10px 20px;
+            border-radius: 10px;
+            display: inline-block;
+            color: #4a5568;
+            font-weight: 500;
+        }
+
+        .homework-cell {
+            color: #718096;
+            font-size: 14px;
+        }
+
+        .homework-empty {
+            color: #cbd5e0;
+        }
+
+        .grade-cell {
+            text-align: center;
+        }
+
+        .grade-badge {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .grade-5 {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+
+        .grade-4 {
+            background: #bee3f8;
+            color: #2a4365;
+        }
+
+        .grade-3 {
+            background: #feebc8;
+            color: #744210;
+        }
+
+        .grade-2 {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+
+        .grade-empty {
+            color: #cbd5e0;
+            font-size: 24px;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 40px;
+            color: #a0aec0;
+            font-size: 18px;
+        }
+
+        .scroll-indicator {
+            text-align: center;
+            margin-top: 20px;
+            color: #667eea;
+            font-size: 24px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+{% load dict_filters %}
+    <div class="container">
+
+        <div class="top-nav">
+            <div class="nav-buttons">
+                <a href="{% url 'student_schedule' %}" class="nav-btn">📅 Расписание на неделю</a>
+                <a href="{% url 'quarter_grades' student.id %}" class="nav-btn">🏆 Четвертные отметки</a>
+            </div>
+            <div class="user-profile">
+                <span class="user-name">{{ student.last_name }} {{ student.first_name|slice:":1" }}. {{ student.patronymic|slice:":1" }}.</span>
+                <div class="user-avatar">👤</div>
+            </div>
+        </div>
+
+        <div class="month-section">
+            <div class="month-title">{{ current_date|date:"F Y" }}</div>
+            <div class="date-navigation">
+                <button class="nav-arrow">‹</button>
+                <div class="date-circles">
+                    {% for d in dates_range %}
+                        <a href="?date={{ d|date:'Y-m-d' }}"
+                           class="date-circle {% if d|date:'Y-m-d' == current_date_string %}active{% endif %}">
+                            {{ d|date:"d" }}
+                        </a>
+                    {% endfor %}
+                </div>
+                <button class="nav-arrow">›</button>
+            </div>
+        </div>
+
+        <div class="schedule-card">
+            <div class="schedule-title">Расписание уроков</div>
+
+            {% if daily_schedule %}
+            <table class="schedule-table">
+                <thead>
+                    <tr>
+                        <th style="width: 100px;">№ урока</th>
+                        <th style="width: 300px;">Урок</th>
+                        <th>Домашнее задание</th>
+                        <th style="width: 100px;">Оценка</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for lesson in daily_schedule %}
+                    <tr>
+                        <td>
+                            <span class="lesson-number">{{ lesson.number }}</span>
+                        </td>
+                        <td>
+                            <span class="subject-name">{{ lesson.subject.name }}</span>
+                        </td>
+                        <td class="homework-cell">
+                            {% if lesson.homework %}
+                                {{ lesson.homework.description }}
+                            {% else %}
+                                <span class="homework-empty">—</span>
+                            {% endif %}
+                        </td>
+                        <td class="grade-cell">
+                            {% if lesson.grade %}
+                                <span class="grade-badge grade-{{ lesson.grade }}">{{ lesson.grade }}</span>
+                            {% else %}
+                                <span class="grade-empty">•</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="no-data">Нет уроков в этот день</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="no-data">Нет уроков в этот день</div>
+            {% endif %}
+
+            <div class="scroll-indicator">⌄</div>
+        </div>
+    </div>
+</body>
+    <script>
+        const navArrows = document.querySelectorAll('.nav-arrow');
+        const dateCircles = document.querySelector('.date-circles');
+        const currentDate = new Date('{{ current_date|date:"Y-m-d" }}');
+
+        function loadMonth(offset) {
+            let newDate = new Date(currentDate);
+            newDate.setMonth(newDate.getMonth() + offset);
+            newDate.setDate(1);
+            window.location.href = `?date=${newDate.toISOString().split('T')[0]}`;
+        }
+
+        navArrows.forEach((arrow, index) => {
+            arrow.addEventListener('click', () => {
+                if (index === 0) {
+                    loadMonth(-1);
+                } else {
+                    loadMonth(1);
+                }
+            });
+        });
+
+        const scrollIndicator = document.querySelector('.scroll-indicator');
+        if (scrollIndicator) {
+            scrollIndicator.addEventListener('click', () => {
+                window.scrollTo({
+                    top: document.body.scrollHeight,
+                    behavior: 'smooth'
+                });
+            });
+        }
+
+        const dateCirclesContainer = document.querySelector('.date-circles');
+        if (dateCirclesContainer) {
+            const activeDate = document.querySelector('.date-circle.active');
+            if (activeDate) {
+                activeDate.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+    </script>
+</html>

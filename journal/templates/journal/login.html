@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вход в систему</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f8ff;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .top-bar {
+            background-color: #1a1a1a;
+            color: #888;
+            padding: 10px 20px;
+            font-size: 14px;
+        }
+
+        .main-wrapper {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .login-card {
+            background: white;
+            border-radius: 30px;
+            box-shadow: 0 10px 40px rgba(0, 50, 150, 0.1);
+            padding: 40px;
+            max-width: 900px;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 40px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card-image {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .card-image img {
+            max-width: 200px;
+            height: auto;
+            filter: drop-shadow(0 10px 15px rgba(0,0,0,0.1));
+        }
+
+        .card-content {
+            flex: 1.2;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .logo-area {
+            margin-bottom: 30px;
+        }
+
+        .logo-text {
+            font-size: 32px;
+            font-weight: 800;
+            color: #2b6cb0;
+            display: inline-flex;
+            align-items: center;
+            background: #ebf8ff;
+            padding: 5px 15px;
+            border-radius: 10px;
+            border: 2px solid #2b6cb0;
+        }
+
+        .logo-number {
+            background: #2b6cb0;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 8px;
+            margin-left: 5px;
+        }
+
+        .sub-logo {
+            display: block;
+            margin-top: 5px;
+            font-size: 12px;
+            color: #4a5568;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .description {
+            color: #4a5568;
+            font-size: 16px;
+            line-height: 1.5;
+            margin-bottom: 30px;
+            font-weight: 500;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 100%;
+            max-width: 350px;
+        }
+
+        input {
+            padding: 14px 20px;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 15px;
+            background: #f8fafc;
+            transition: all 0.3s;
+            width: 100%;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #2b6cb0;
+            background: white;
+            box-shadow: 0 0 0 4px rgba(43, 108, 176, 0.1);
+        }
+
+        button {
+            padding: 14px;
+            background: #2b6cb0;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: background 0.3s, transform 0.1s;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background: #2c5282;
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        .error {
+            background: #fff5f5;
+            color: #c53030;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-size: 14px;
+            border: 1px solid #feb2b2;
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            .login-card {
+                flex-direction: column-reverse;
+                padding: 30px 20px;
+                text-align: center;
+            }
+
+            .card-image img {
+                max-width: 150px;
+                margin-bottom: 20px;
+            }
+
+            .logo-text {
+                font-size: 24px;
+            }
+
+            form {
+                margin: 0 auto;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="main-wrapper">
+        <div class="login-card">
+
+            <div class="card-image">
+                <img src="https://cdn-icons-png.flaticon.com/512/3407/3407026.png" alt="Образование">
+            </div>
+
+            <div class="card-content">
+
+                <div class="logo-area">
+                    <div class="logo-text">
+                        Гимназия <span class="logo-number">№13</span>
+                    </div>
+                    <span class="sub-logo">МАОУ Гимназия №13, г. Казань</span>
+                </div>
+
+                <div class="description">
+                    Вход для сотрудников сферы образования и учащихся
+                </div>
+
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="text" name="username" placeholder="Логин" required>
+                    <input type="password" name="password" placeholder="Пароль" required>
+                    <button type="submit">Войти</button>
+                </form>
+
+                {% if form.errors %}
+                    <div class="error">
+                        Неверный логин или пароль
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

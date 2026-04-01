@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Выбор класса - Журнал учителя</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .top-nav {
+            background: white;
+            border-radius: 15px;
+            padding: 15px 25px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 15px;
+        }
+
+        .nav-btn {
+            padding: 10px 20px;
+            border: none;
+            background: #f0f4f8;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #666;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-name {
+            color: #4a5568;
+            font-weight: 500;
+            font-size: 14px;
+            text-align: right;
+        }
+
+        .user-avatar {
+            width: 45px;
+            height: 45px;
+            background: #667eea;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .header-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .header-card h1 {
+            font-size: 24px;
+            color: #2d3748;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .header-card p {
+            color: #718096;
+            font-size: 16px;
+        }
+
+        .classes-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .class-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+            text-decoration: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 2px solid transparent;
+        }
+
+        .class-card:hover {
+            transform: translateX(5px);
+            border-color: #667eea;
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.2);
+        }
+
+        .class-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .class-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+        }
+
+        .class-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .class-subtitle {
+            font-size: 13px;
+            color: #718096;
+            margin-top: 3px;
+        }
+
+        .arrow {
+            color: #cbd5e0;
+            font-size: 24px;
+            transition: all 0.3s;
+        }
+
+        .class-card:hover .arrow {
+            color: #667eea;
+            transform: translateX(3px);
+        }
+
+        .no-classes {
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            text-align: center;
+            color: #718096;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .no-classes-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+
+        .no-classes p {
+            margin-bottom: 8px;
+        }
+
+        .no-classes .hint {
+            font-size: 14px;
+            color: #a0aec0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="top-nav">
+            <div class="nav-buttons">
+                <a href="{% url 'teacher_schedule' %}" class="nav-btn">📅 Мое расписание</a>
+            </div>
+            <div class="user-profile">
+                <div class="user-name">
+                    {{ teacher.last_name }}<br>
+                    {{ teacher.first_name|slice:":1" }}. {{ teacher.patronymic|slice:":1" }}.
+                </div>
+                <div class="user-avatar">👨‍🏫</div>
+            </div>
+        </div>
+
+        <div class="header-card">
+            <h1>📚 Журнал учителя</h1>
+            <p>Выберите класс для работы с оценками и дз</p>
+        </div>
+
+        {% if classes %}
+            <div class="classes-list">
+                {% for class in classes %}
+                <a href="{% url 'select_subject' class.id %}" class="class-card">
+                    <div class="class-info">
+                        <div class="class-icon">📖</div>
+                        <div>
+                            <div class="class-name">{{ class.grade }}{{ class.letter }} класс</div>
+                            <div class="class-subtitle">{{ class.students_count }} </div>
+                        </div>
+                    </div>
+                    <span class="arrow">→</span>
+                </a>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="no-classes">
+                <div class="no-classes-icon">📭</div>
+                <p><strong>Нет назначенных классов</strong></p>
+                <p class="hint">Обратитесь к администратору для добавления расписания</p>
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html>
