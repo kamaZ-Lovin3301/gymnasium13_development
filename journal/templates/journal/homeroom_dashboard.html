@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Классное руководство - {{ homeroom_class.grade }}{{ homeroom_class.letter }}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1300px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        h1 { color: #2d3748; margin-bottom: 20px; border-left: 5px solid #667eea; padding-left: 20px; }
+        .class-info { background: #ebf4ff; padding: 15px; border-radius: 12px; margin-bottom: 25px; font-size: 18px; }
+        .subject-selector { margin: 20px 0; display: flex; gap: 15px; align-items: center; flex-wrap: wrap; }
+        select, button { padding: 10px 20px; border-radius: 10px; border: 1px solid #cbd5e0; font-size: 14px; background: white; cursor: pointer; }
+        button { background: #667eea; color: white; border: none; transition: 0.2s; }
+        button:hover { background: #5a67d8; transform: translateY(-2px); }
+        .export-btn { background: #48bb78; margin-left: 10px; display: inline-block; }
+        .export-btn:hover { background: #38a169; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+        th { background: #edf2f7; color: #2d3748; font-weight: 600; }
+        .avg { font-weight: bold; color: #2b6cb0; }
+        .grades-list { display: flex; flex-wrap: wrap; gap: 8px; }
+        .grade-badge {
+            width: 32px; height: 32px; border-radius: 50%; display: inline-flex;
+            align-items: center; justify-content: center; font-weight: bold;
+            background: #e2e8f0; color: #4a5568;
+        }
+        .grade-5 { background: #c6f6d5; color: #22543d; }
+        .grade-4 { background: #bee3f8; color: #2a4365; }
+        .grade-3 { background: #feebc8; color: #744210; }
+        .grade-2 { background: #fed7d7; color: #742a2a; }
+        .no-data { color: #a0aec0; font-style: italic; }
+        .back-link { display: inline-block; margin-top: 30px; color: #667eea; text-decoration: none; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>🏫 Классное руководство</h1>
+    <div class="class-info">
+        <strong>{{ teacher.last_name }} {{ teacher.first_name }}</strong> — классный руководитель
+        <strong>{{ homeroom_class.grade }}{{ homeroom_class.letter }} класса</strong>
+    </div>
+
+    <div class="subject-selector">
+        <form method="get" style="display: flex; gap: 15px; align-items: center;">
+            <label>Предмет:</label>
+            <select name="subject_id">
+                <option value="">-- Выберите предмет --</option>
+                {% for subject in subjects %}
+                    <option value="{{ subject.id }}" {% if selected_subject.id == subject.id %}selected{% endif %}>
+                        {{ subject.name }}
+                    </option>
+                {% endfor %}
+            </select>
+            <button type="submit">Показать успеваемость</button>
+        </form>
+        {% if selected_subject %}
+            <a href="{% url 'export_homeroom_grades' %}?subject_id={{ selected_subject.id }}" class="export-btn" style="background: #48bb78; color: white; padding: 10px 20px; border-radius: 10px; text-decoration: none;">📎 Сформировать отчёт (Excel)</a>
+        {% endif %}
+    </div>
+
+    {% if selected_subject %}
+        <h2>Успеваемость по предмету «{{ selected_subject.name }}»</h2>
+        <table>
+            <thead>
+                <tr><th>Ученик</th><th>Оценки</th><th>Средний балл</th></tr>
+            </thead>
+            <tbody>
+                {% for item in students_data %}
+                <tr>
+                    <td>{{ item.student.last_name }} {{ item.student.first_name }}</td>
+                    <td>
+                        <div class="grades-list">
+                            {% for grade in item.grades %}
+                                {% if grade.grade %}
+                                    <span class="grade-badge grade-{{ grade.grade }}">{{ grade.grade }}</span>
+                                {% endif %}
+                            {% empty %}
+                                <span class="no-data">Нет оценок</span>
+                            {% endfor %}
+                        </div>
+                    </td>
+                    <td class="avg">{{ item.avg_grade|default:"—" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p style="margin-top: 30px; color: #718096;">Выберите предмет, чтобы увидеть успеваемость класса.</p>
+    {% endif %}
+
+    <a href="{% url 'teacher_schedule' %}" class="back-link">← Вернуться к расписанию</a>
+</div>
+</body>
+</html>

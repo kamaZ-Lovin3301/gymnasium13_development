@@ -11,6 +11,14 @@ class Teacher(models.Model):
     phone = models.CharField(max_length=15, db_column='телефон', blank=True, null=True, verbose_name='Телефон')
     login = models.CharField(max_length=55, db_column='логин', unique=True, verbose_name='Логин')
     password_hash = models.CharField(max_length=256, db_column='пароль_хеш', verbose_name='Пароль (хеш)')
+    homeroom_class = models.ForeignKey(
+        'Class',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        db_column='классный_руководитель_класса_id',
+        verbose_name='Класс, в котором учитель является классным руководителем'
+    )
 
     class Meta:
         db_table = 'учитель'
@@ -119,6 +127,40 @@ class Student(models.Model):
 
     def __str__(self):
         return f'{self.last_name} {self.first_name}'
+
+
+class Parent(models.Model):
+    id = models.AutoField(primary_key=True)
+    last_name = models.CharField(max_length=45, db_column='фамилия', verbose_name='Фамилия')
+    first_name = models.CharField(max_length=45, db_column='имя', verbose_name='Имя')
+    patronymic = models.CharField(max_length=45, db_column='отчество', blank=True, null=True, verbose_name='Отчество')
+    login = models.CharField(max_length=55, db_column='логин', unique=True, verbose_name='Логин')
+    password_hash = models.CharField(max_length=256, db_column='пароль_хеш', verbose_name='Пароль (хеш)')
+    phone = models.CharField(max_length=15, db_column='телефон', blank=True, null=True, verbose_name='Телефон')
+    email = models.CharField(max_length=100, db_column='электронная_почта', blank=True, null=True, verbose_name='Электронная почта')
+
+    class Meta:
+        db_table = 'родитель'
+        verbose_name = 'Родитель'
+        verbose_name_plural = 'Родители'
+
+    def __str__(self):
+        return f'{self.last_name} {self.first_name} {self.patronymic or ""}'
+
+
+class ParentStudent(models.Model):
+    id = models.AutoField(primary_key=True)
+    parent = models.ForeignKey(Parent, on_delete=models.CASCADE, db_column='родитель_id', verbose_name='Родитель')
+    student = models.ForeignKey(Student, on_delete=models.CASCADE, db_column='ученик_id', verbose_name='Ученик')
+
+    class Meta:
+        db_table = 'родитель_ученик'
+        verbose_name = 'Связь родителя и ученика'
+        verbose_name_plural = 'Связи родителей и учеников'
+        unique_together = ('parent', 'student')
+
+    def __str__(self):
+        return f'{self.parent} -> {self.student}'
 
 
 class Grade(models.Model):

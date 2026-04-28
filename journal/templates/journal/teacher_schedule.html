@@ -203,6 +203,9 @@
             <div class="nav-buttons">
                 <a href="{% url 'teacher_journal' %}" class="nav-btn">📖 Управление оценками</a>
                 <a href="{% url 'logout' %}" class="nav-btn">🚪 Выйти</a>
+                {% if show_homeroom_link %}
+                    <a href="{% url 'homeroom_dashboard' %}" class="nav-btn">👨‍🏫 Классное руководство</a>
+                {% endif %}
             </div>
             <div class="month-title">Мое расписание</div>
             <div class="user-profile">

@@ -15,4 +15,6 @@ urlpatterns = [
     path('student/schedule/', views.student_schedule, name='student_schedule'),
     path('student/diary/', views.student_diary, name='student_diary'),
     path('student/quarter-grades/<int:student_id>/', views.quarter_grades, name='quarter_grades'),
+    path('homeroom/', views.homeroom_dashboard, name='homeroom_dashboard'),
+    path('homeroom/export/', views.export_homeroom_grades, name='export_homeroom_grades'),
 ]

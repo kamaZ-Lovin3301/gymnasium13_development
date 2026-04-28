@@ -187,9 +187,9 @@ def teacher_schedule(request):
         })
     return render(request, 'journal/teacher_schedule.html', {
         'schedule_list': schedule_list,
-        'teacher': teacher
+        'teacher': teacher,
+        'show_homeroom_link': teacher.homeroom_class is not None,
     })
-
 def student_schedule(request):
     student = get_student_from_request(request)
     if not student:
@@ -408,3 +408,96 @@ def quarter_grades(request, student_id):
     }
 
     return render(request, 'journal/quarter_grades.html', context)
+
+from django.db.models import Avg
+from django.http import HttpResponse
+from openpyxl import Workbook  # нужно установить pip install openpyxl
+
+def homeroom_dashboard(request):
+    teacher = get_teacher_from_request(request)
+    if not teacher:
+        return redirect('teacher_journal')
+
+    homeroom_class = teacher.homeroom_class
+    if not homeroom_class:
+        return render(request, 'journal/not_homeroom.html', {'teacher': teacher})
+
+    # Все ученики класса
+    students = Student.objects.filter(class_id=homeroom_class).order_by('last_name', 'first_name')
+
+    # Предметы, которые есть в расписании этого класса
+    subjects = Subject.objects.filter(schedule__class_id=homeroom_class).distinct().order_by('name')
+
+    selected_subject_id = request.GET.get('subject_id')
+    selected_subject = None
+    students_data = []
+
+    if selected_subject_id:
+        selected_subject = get_object_or_404(Subject, id=selected_subject_id)
+        for student in students:
+            grades = Grade.objects.filter(
+                student=student,
+                schedule__subject=selected_subject,
+                schedule__class_id=homeroom_class
+            ).order_by('grade_date')  # сортируем по дате
+            grade_values = [g.grade for g in grades if g.grade is not None]
+            avg_grade = round(sum(grade_values) / len(grade_values), 2) if grade_values else None
+            students_data.append({
+                'student': student,
+                'grades': grades,
+                'avg_grade': avg_grade,
+            })
+
+    context = {
+        'teacher': teacher,
+        'homeroom_class': homeroom_class,
+        'students': students,
+        'subjects': subjects,
+        'selected_subject': selected_subject,
+        'students_data': students_data,
+    }
+    return render(request, 'journal/homeroom_dashboard.html', context)
+
+
+def export_homeroom_grades(request):
+    teacher = get_teacher_from_request(request)
+    if not teacher or not teacher.homeroom_class:
+        return redirect('teacher_journal')
+
+    homeroom_class = teacher.homeroom_class
+    subject_id = request.GET.get('subject_id')
+    if not subject_id:
+        return redirect('homeroom_dashboard')
+
+    subject = get_object_or_404(Subject, id=subject_id)
+    students = Student.objects.filter(class_id=homeroom_class).order_by('last_name', 'first_name')
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = f"{homeroom_class.grade}{homeroom_class.letter}_{subject.name}"
+
+    # Заголовки
+    ws['A1'] = 'Фамилия'
+    ws['B1'] = 'Имя'
+    ws['C1'] = 'Средний балл'
+    ws['D1'] = 'Оценки (через запятую)'
+
+    row = 2
+    for student in students:
+        grades = Grade.objects.filter(
+            student=student,
+            schedule__subject=subject,
+            schedule__class_id=homeroom_class
+        )
+        grade_values = [str(g.grade) for g in grades if g.grade is not None]
+        avg_grade = round(sum(map(int, grade_values)) / len(grade_values), 2) if grade_values else ''
+        ws.cell(row=row, column=1, value=student.last_name)
+        ws.cell(row=row, column=2, value=student.first_name)
+        ws.cell(row=row, column=3, value=avg_grade)
+        ws.cell(row=row, column=4, value=', '.join(grade_values))
+        row += 1
+
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = f'attachment; filename="success_{homeroom_class.grade}{homeroom_class.letter}_{subject.name}.xlsx"'
+    wb.save(response)
+    return response
