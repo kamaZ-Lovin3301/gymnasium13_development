@@ -225,6 +225,7 @@
         <div class="homework-section">
             <h3>📖 Домашнее задание</h3>
             <textarea id="homeworkText" class="homework-textarea" placeholder="Введите текст домашнего задания...">{% if homework %}{{ homework.description }}{% endif %}</textarea>
+            <button id="saveAllGradesBtn" class="save-btn" style="background-color: #48bb78; margin-bottom: 10px;">💾 Сохранить все оценки</button>
             <button id="saveHomeworkBtn" class="save-btn">Сохранить домашнее задание</button>
         </div>
     </div>
@@ -376,6 +377,54 @@
                 window.location.href = `?schedule_id=${currentScheduleId}`;
             });
         }
+
+        // Сохранение всех оценок одной кнопкой
+        const saveAllGradesBtn = document.getElementById('saveAllGradesBtn');
+        if (saveAllGradesBtn) {
+            saveAllGradesBtn.addEventListener('click', async () => {
+                if (!currentScheduleId) {
+                    showError('Сначала выберите урок');
+                    return;
+                }
+
+                const gradeInputs = document.querySelectorAll('.grade-input');
+                let anyGrade = false;
+                let successCount = 0;
+                let errorCount = 0;
+
+                // Меняем текст кнопки на время сохранения
+                const originalText = saveAllGradesBtn.textContent;
+                saveAllGradesBtn.textContent = '⏳ Сохранение...';
+                saveAllGradesBtn.disabled = true;
+
+                for (const input of gradeInputs) {
+                    const grade = input.value.trim();
+                    if (grade !== '') {
+                        anyGrade = true;
+                        const studentId = input.dataset.studentId;
+                        // Используем существующую функцию saveGrade (она возвращает true/false)
+                        const success = await saveGrade(studentId, grade);
+                        if (success) {
+                            successCount++;
+                        } else {
+                            errorCount++;
+                        }
+                    }
+                }
+
+                // Восстанавливаем кнопку
+                saveAllGradesBtn.textContent = originalText;
+                saveAllGradesBtn.disabled = false;
+
+                if (!anyGrade) {
+                    showError('Нет оценок для сохранения');
+                } else if (errorCount === 0) {
+                    showSuccess(`✅ Сохранено ${successCount} оценок`);
+                } else {
+                    showError(`Сохранено: ${successCount}, ошибок: ${errorCount}`);
+                }
+            });
+}
     </script>
 </body>
 </html>

@@ -10,21 +10,41 @@ from datetime import date
 from .models import Teacher, Schedule, Class, Subject, Student, Grade, Homework
 from django.db.models import Avg, F
 from django.db.models.functions import Round
+from django.shortcuts import render, get_object_or_404, redirect
+from django.http import JsonResponse
+from datetime import date
+from .models import Teacher, Schedule, Class, Subject, Student, Grade, Homework
 
+def get_teacher_from_request(request):
+    """Возвращает объект Teacher, связанный с текущим пользователем (User)."""
+    if not request.user.is_authenticated:
+        return None
+    try:
+        # Ищем учителя по логину (username стандартного User)
+        teacher = Teacher.objects.get(login=request.user.username)
+        return teacher
+    except Teacher.DoesNotExist:
+        return None
+
+def get_student_from_request(request):
+    """Возвращает объект Student, связанный с текущим пользователем (User)."""
+    if not request.user.is_authenticated:
+        return None
+    try:
+        student = Student.objects.get(login=request.user.username)
+        return student
+    except Student.DoesNotExist:
+        return None
 
 def get_default_teacher():
     return Teacher.objects.first()
 
 
 def teacher_journal(request):
-    teacher = get_default_teacher()
+    teacher = get_teacher_from_request(request)
     if not teacher:
         return render(request, 'journal/no_teacher.html')
-
-    classes_taught = Class.objects.filter(
-        schedule__teacher=teacher
-    ).distinct()
-
+    classes_taught = Class.objects.filter(schedule__teacher=teacher).distinct()
     context = {
         'teacher': teacher,
         'classes': classes_taught,
@@ -33,17 +53,14 @@ def teacher_journal(request):
 
 
 def select_subject(request, class_id):
-    teacher = get_default_teacher()
+    teacher = get_teacher_from_request(request)
     if not teacher:
         return redirect('teacher_journal')
-
     class_obj = get_object_or_404(Class, id=class_id)
-
     subjects = Subject.objects.filter(
         schedule__teacher=teacher,
         schedule__class_id=class_obj
     ).distinct()
-
     context = {
         'teacher': teacher,
         'class_obj': class_obj,
@@ -54,23 +71,18 @@ def select_subject(request, class_id):
 
 # Страница журнала (оценки и ДЗ)
 def journal_page(request, class_id, subject_id):
-    teacher = get_default_teacher()
+    teacher = get_teacher_from_request(request)
     if not teacher:
         return redirect('teacher_journal')
-
     class_obj = get_object_or_404(Class, id=class_id)
     subject_obj = get_object_or_404(Subject, id=subject_id)
-
     students = Student.objects.filter(class_id=class_obj)
-
     schedule_items = Schedule.objects.filter(
         class_id=class_obj,
         subject_id=subject_obj,
         teacher_id=teacher
     ).order_by('-day_of_week', '-lesson_number')
-
     selected_schedule = schedule_items.first()
-
     grades = {}
     if selected_schedule:
         grade_objects = Grade.objects.filter(
@@ -78,12 +90,10 @@ def journal_page(request, class_id, subject_id):
             grade_date=date.today()
         )
         for g in grade_objects:
-            grades[g.student_id.id] = g.grade
-
+            grades[g.student_id] = g.grade
     homework = None
     if selected_schedule:
         homework = Homework.objects.filter(schedule=selected_schedule).first()
-
     context = {
         'teacher': teacher,
         'class_obj': class_obj,
@@ -101,7 +111,7 @@ def journal_page(request, class_id, subject_id):
 # Выставить оценку
 def set_grade(request):
     if request.method == 'POST':
-        teacher = get_default_teacher()
+        teacher = get_teacher_from_request(request)
         if not teacher:
             return JsonResponse({'error': 'Учитель не найден'}, status=403)
 
@@ -110,15 +120,21 @@ def set_grade(request):
         grade_value = request.POST.get('grade')
         grade_date = request.POST.get('grade_date')
 
+        if not all([student_id, schedule_id, grade_date]):
+            return JsonResponse({'error': 'Не все данные переданы'}, status=400)
+
         schedule = get_object_or_404(Schedule, id=schedule_id)
-        if schedule.teacher_id != teacher:
+
+        # Проверка прав
+        if schedule.teacher_id != teacher.id:
             return JsonResponse({'error': 'Нет прав'}, status=403)
 
+        # Сохраняем оценку
         grade, created = Grade.objects.update_or_create(
-            student_id_id=student_id,
-            schedule_id=schedule,
+            student_id=student_id,
+            schedule=schedule,
             grade_date=grade_date,
-            defaults={'grade': grade_value}
+            defaults={'grade': grade_value if grade_value else None}
         )
 
         return JsonResponse({'success': True, 'grade': grade_value})
@@ -129,23 +145,24 @@ def set_grade(request):
 # Сохранить домашнее задание
 def set_homework(request):
     if request.method == 'POST':
-        teacher = get_default_teacher()
+        teacher = get_teacher_from_request(request)
         if not teacher:
             return JsonResponse({'error': 'Учитель не найден'}, status=403)
 
         schedule_id = request.POST.get('schedule_id')
         description = request.POST.get('description')
 
+        if not schedule_id:
+            return JsonResponse({'error': 'Не указан урок'}, status=400)
+
         schedule = get_object_or_404(Schedule, id=schedule_id)
-        if schedule.teacher_id != teacher:
+
+        if schedule.teacher_id != teacher.id:
             return JsonResponse({'error': 'Нет прав'}, status=403)
 
         homework, created = Homework.objects.update_or_create(
-            schedule_id=schedule,
-            defaults={
-                'description': description,
-                'due_date': request.POST.get('due_date') or None
-            }
+            schedule=schedule,
+            defaults={'description': description or ''}
         )
 
         return JsonResponse({'success': True})
@@ -154,36 +171,29 @@ def set_homework(request):
 
 
 def teacher_schedule(request):
-    teacher = get_default_teacher()
+    teacher = get_teacher_from_request(request)
     if not teacher:
         return redirect('teacher_journal')
-
     schedule = Schedule.objects.filter(teacher=teacher).select_related('class_id', 'subject', 'room').order_by(
         'day_of_week', 'lesson_number')
-
     days_map = {1: 'Понедельник', 2: 'Вторник', 3: 'Среда', 4: 'Четверг', 5: 'Пятница', 6: 'Суббота'}
-
     schedule_list = []
     for day in range(1, 7):
         day_lessons = [lesson for lesson in schedule if lesson.day_of_week == day]
-        if day_lessons:
-            schedule_list.append({
-                'day_name': days_map[day],
-                'day_short': days_map[day][:2],
-                'lessons': day_lessons
-            })
-
+        schedule_list.append({
+            'day_name': days_map[day],
+            'day_short': days_map[day][:2],
+            'lessons': day_lessons
+        })
     return render(request, 'journal/teacher_schedule.html', {
         'schedule_list': schedule_list,
         'teacher': teacher
     })
 
 def student_schedule(request):
-    try:
-        student = Student.objects.get(login=request.user.username)
-    except Student.DoesNotExist:
+    student = get_student_from_request(request)
+    if not student:
         return redirect('teacher_journal')
-
     schedule = Schedule.objects.filter(class_id=student.class_id).select_related('subject', 'teacher', 'room').order_by(
         'day_of_week', 'lesson_number')
 
@@ -242,23 +252,22 @@ def home(request):
     return redirect('login')
 
 def redirect_after_login(request):
-    if request.user.is_authenticated:
-        try:
-            teacher = Teacher.objects.get(login=request.user.username)
-            return redirect('teacher_schedule')
-        except Teacher.DoesNotExist:
-            try:
-                student = Student.objects.get(login=request.user.username)
-                return redirect('student_schedule')
-            except Student.DoesNotExist:
-                return redirect('teacher_journal')
-    return redirect('login')
+    if not request.user.is_authenticated:
+        return redirect('login')
+    # Пытаемся найти учителя
+    teacher = get_teacher_from_request(request)
+    if teacher:
+        return redirect('teacher_schedule')
+    student = get_student_from_request(request)
+    if student:
+        return redirect('student_schedule')
+    # Если ни учитель, ни ученик – можно отправить на страницу учителя по умолчанию
+    return redirect('teacher_journal')
 
 
 def student_diary(request):
-    try:
-        student = Student.objects.get(login=request.user.username)
-    except Student.DoesNotExist:
+    student = get_student_from_request(request)
+    if not student:
         return redirect('teacher_journal')
 
     date_str = request.GET.get('date')
