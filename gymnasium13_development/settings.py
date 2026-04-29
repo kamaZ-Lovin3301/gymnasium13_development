@@ -72,15 +72,14 @@ WSGI_APPLICATION = 'gymnasium13_development.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
-import pymysql
-pymysql.install_as_MySQLdb()
+
 
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'gymnasium13',   # например 'gimnazia_journal'
         'USER': 'root',                     # ваш пользователь MySQL (обычно root)
-        'PASSWORD': 'Rfkmwbq2005',           # пароль от MySQL
+        'PASSWORD': '8900',           # пароль от MySQL
         'HOST': 'localhost',
         'PORT': '3306',
     }

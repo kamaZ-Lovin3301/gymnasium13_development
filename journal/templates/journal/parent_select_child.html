@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Выбор ребенка - Дневник родителя</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .top-nav {
+            background: white;
+            border-radius: 15px;
+            padding: 15px 25px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .logout-btn {
+            padding: 10px 20px;
+            border: none;
+            background: #f0f4f8;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #666;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logout-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .header {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 20px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            color: #2d3748;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #718096;
+        }
+
+        .child-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px 25px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+            text-decoration: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .child-card:hover {
+            transform: translateX(5px);
+            border-left: 4px solid #667eea;
+        }
+
+        .child-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .child-class {
+            font-size: 14px;
+            color: #718096;
+            margin-top: 5px;
+        }
+
+        .arrow {
+            font-size: 24px;
+            color: #cbd5e0;
+        }
+
+        .no-children {
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            text-align: center;
+            color: #718096;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="top-nav">
+            <a href="{% url 'logout' %}" class="logout-btn">🚪 Выйти</a>
+        </div>
+
+        <div class="header">
+            <h1>👨‍👩‍👧‍👦 Дневник родителя</h1>
+            <p>{{ parent.last_name }} {{ parent.first_name }} {{ parent.patronymic }}</p>
+            <p>Выберите ребенка для просмотра</p>
+        </div>
+
+        {% if children %}
+            {% for child in children %}
+            <a href="{% url 'parent_schedule' child.id %}" class="child-card">
+                <div>
+                    <div class="child-name">{{ child.last_name }} {{ child.first_name }} {{ child.patronymic }}</div>
+                    <div class="child-class">{{ child.class_id.grade }}{{ child.class_id.letter }} класс</div>
+                </div>
+                <div class="arrow">→</div>
+            </a>
+            {% endfor %}
+        {% else %}
+            <div class="no-children">
+                <p>У вас нет привязанных детей</p>
+                <p>Обратитесь к администратору</p>
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html>

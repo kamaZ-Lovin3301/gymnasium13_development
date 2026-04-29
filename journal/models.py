@@ -140,7 +140,7 @@ class Parent(models.Model):
     email = models.CharField(max_length=100, db_column='электронная_почта', blank=True, null=True, verbose_name='Электронная почта')
 
     class Meta:
-        db_table = 'родитель'
+        db_table = 'родители'
         verbose_name = 'Родитель'
         verbose_name_plural = 'Родители'
 
@@ -191,3 +191,4 @@ class Homework(models.Model):
 
     def __str__(self):
         return f'Homework: {self.description[:50]}...'
+
