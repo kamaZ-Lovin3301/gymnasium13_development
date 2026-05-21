@@ -21,4 +21,9 @@ urlpatterns = [
     path('parent/schedule/<int:child_id>/', views.parent_schedule, name='parent_schedule'),
     path('parent/diary/<int:child_id>/', views.parent_diary, name='parent_diary'),
     path('parent/quarter-grades/<int:child_id>/', views.parent_quarter_grades, name='parent_quarter_grades'),
+    path('announcements/', views.announcements_for_class, name='announcements_for_class'),
+    path('student/announcements/', views.student_announcements, name='student_announcements'),
+    path('parent/announcements/<int:child_id>/', views.parent_announcements, name='parent_announcements'),
+    path('', views.guest_home, name='guest_home'),
+    path('login/', LoginView.as_view(template_name='journal/login.html'), name='login'),
 ]

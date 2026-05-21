@@ -77,9 +77,9 @@ WSGI_APPLICATION = 'gymnasium13_development.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'gymnasium13',   # например 'gimnazia_journal'
-        'USER': 'root',                     # ваш пользователь MySQL (обычно root)
-        'PASSWORD': '8900',           # пароль от MySQL
+        'NAME': 'gymnasium13',
+        'USER': 'root',
+        'PASSWORD': 'Rfkmwbq2005',
         'HOST': 'localhost',
         'PORT': '3306',
     }
@@ -134,3 +134,10 @@ AUTHENTICATION_BACKENDS = [
     'journal.backends.CustomAuthBackend',
     'django.contrib.auth.backends.ModelBackend',
 ]
+
+import os
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+STATICFILES_DIRS = [BASE_DIR / "static"]

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Объявления для {{ class_obj.grade }}{{ class_obj.letter }}</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; margin: 20px; }
+        .container { max-width: 800px; margin: auto; background: white; border-radius: 15px; padding: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        h1 { color: #2d3748; }
+        .add-form { background: #f8fafc; padding: 20px; border-radius: 10px; margin-bottom: 30px; }
+        input, textarea { width: 100%; padding: 10px; margin: 10px 0; border-radius: 8px; border: 1px solid #cbd5e0; }
+        button { background: #667eea; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; }
+        .announcement { border-bottom: 1px solid #e2e8f0; padding: 15px 0; }
+        .announcement h3 { margin: 0 0 5px; }
+        .announcement .date { color: #718096; font-size: 12px; }
+        .back-link { display: inline-block; margin-top: 20px; color: #667eea; text-decoration: none; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>📢 Объявления для {{ class_obj.grade }}{{ class_obj.letter }} класса</h1>
+
+    <div class="add-form">
+        <h3>Добавить новое объявление</h3>
+        <form method="post">
+            {% csrf_token %}
+            <input type="text" name="title" placeholder="Заголовок" required>
+            <textarea name="text" rows="4" placeholder="Текст объявления" required></textarea>
+            <button type="submit">Опубликовать</button>
+        </form>
+    </div>
+
+    <h3>Прошлые объявления</h3>
+    {% for ann in announcements %}
+        <div class="announcement">
+            <h3>{{ ann.title }}</h3>
+            <div class="date">{{ ann.created_at|date:"d.m.Y H:i" }}</div>
+            <p>{{ ann.text|linebreaksbr }}</p>
+        </div>
+    {% empty %}
+        <p>Пока нет объявлений.</p>
+    {% endfor %}
+
+    <a href="{% url 'teacher_schedule' %}" class="back-link">← Вернуться к расписанию</a>
+</div>
+</body>
+</html>

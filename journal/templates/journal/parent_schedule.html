@@ -250,6 +250,7 @@
         <div class="top-header">
             <div class="nav-buttons">
                 <a href="{% url 'parent_diary' student.id %}" class="nav-btn">📖 Дневник</a>
+                <a href="{% url 'parent_announcements' student.id %}" class="nav-btn">📢 Объявления</a>
                 <a href="{% url 'parent_quarter_grades' student.id %}" class="nav-btn">🏆 Четвертные отметки</a>
                 <a href="{% url 'logout' %}" class="nav-btn">🚪 Выйти</a>
             </div>

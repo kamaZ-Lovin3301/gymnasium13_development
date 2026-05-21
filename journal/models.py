@@ -140,7 +140,7 @@ class Parent(models.Model):
     email = models.CharField(max_length=100, db_column='электронная_почта', blank=True, null=True, verbose_name='Электронная почта')
 
     class Meta:
-        db_table = 'родители'
+        db_table = 'родитель'
         verbose_name = 'Родитель'
         verbose_name_plural = 'Родители'
 
@@ -183,6 +183,13 @@ class Homework(models.Model):
     id = models.AutoField(primary_key=True)
     schedule = models.ForeignKey(Schedule, on_delete=models.CASCADE, db_column='расписание_id', verbose_name='Урок')
     description = models.CharField(max_length=255, db_column='описание_задания', verbose_name='Описание задания')
+    file = models.FileField(
+        upload_to='homework/%Y/%m/%d/',
+        blank=True,
+        null=True,
+        db_column='файл',
+        verbose_name='Файл'
+    )
 
     class Meta:
         db_table = 'домашнее_задание'
@@ -191,4 +198,21 @@ class Homework(models.Model):
 
     def __str__(self):
         return f'Homework: {self.description[:50]}...'
+
+
+class Announcement(models.Model):
+    id = models.AutoField(primary_key=True)
+    title = models.CharField(max_length=255, db_column='заголовок', verbose_name='Заголовок')
+    text = models.TextField(db_column='текст', verbose_name='Текст объявления')
+    created_at = models.DateTimeField(auto_now_add=True, db_column='дата_создания', verbose_name='Дата создания')
+    class_id = models.ForeignKey('Class', on_delete=models.CASCADE, db_column='класс_id', verbose_name='Класс')
+    teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE, db_column='учитель_id', verbose_name='Учитель')
+
+    class Meta:
+        db_table = 'объявления'
+        verbose_name = 'Объявление'
+        verbose_name_plural = 'Объявления'
+
+    def __str__(self):
+        return self.title
 

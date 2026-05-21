@@ -235,10 +235,12 @@
         <div class="top-header">
             <div class="nav-buttons">
                 <a href="{% url 'student_diary' %}" class="nav-btn">📅 Дневник</a>
+                <a href="{% url 'student_announcements' %}" class="nav-btn">📢 Объявления</a>
                 <a href="{% url 'quarter_grades' student.id %}" class="nav-btn">🏆 Четвертные отметки</a>
                 <a href="{% url 'logout' %}" class="nav-btn">🚪 Выйти</a>
             </div>
             <div class="month-title">{{ current_month }}</div>
+            <span class="user-name">{{ student.last_name }} {{ student.first_name|slice:":1" }}. {{ student.patronymic|slice:":1" }}.</span>
             <div class="user-avatar">👤</div>
         </div>
 
@@ -255,6 +257,9 @@
                             <div class="homework-cell">
                                 {% if lesson.homework %}
                                     {{ lesson.homework.description }}
+                                    {% if lesson.homework.file %}
+                                        <br><a href="{{ lesson.homework.file.url }}" target="_blank">📎 Скачать файл</a>
+                                    {% endif %}
                                 {% else %}
                                     <span class="homework-empty">Нет задания</span>
                                 {% endif %}
@@ -283,6 +288,9 @@
                             <div class="homework-cell">
                                 {% if lesson.homework %}
                                     {{ lesson.homework.description }}
+                                    {% if lesson.homework.file %}
+                                        <br><a href="{{ lesson.homework.file.url }}" target="_blank">📎 Скачать файл</a>
+                                    {% endif %}
                                 {% else %}
                                     <span class="homework-empty">Нет задания</span>
                                 {% endif %}
@@ -314,6 +322,9 @@
                             <div class="homework-cell">
                                 {% if lesson.homework %}
                                     {{ lesson.homework.description }}
+                                    {% if lesson.homework.file %}
+                                        <br><a href="{{ lesson.homework.file.url }}" target="_blank">📎 Скачать файл</a>
+                                    {% endif %}
                                 {% else %}
                                     <span class="homework-empty">Нет задания</span>
                                 {% endif %}
@@ -342,6 +353,9 @@
                             <div class="homework-cell">
                                 {% if lesson.homework %}
                                     {{ lesson.homework.description }}
+                                    {% if lesson.homework.file %}
+                                        <br><a href="{{ lesson.homework.file.url }}" target="_blank">📎 Скачать файл</a>
+                                    {% endif %}
                                 {% else %}
                                     <span class="homework-empty">Нет задания</span>
                                 {% endif %}
@@ -373,6 +387,9 @@
                             <div class="homework-cell">
                                 {% if lesson.homework %}
                                     {{ lesson.homework.description }}
+                                    {% if lesson.homework.file %}
+                                        <br><a href="{{ lesson.homework.file.url }}" target="_blank">📎 Скачать файл</a>
+                                    {% endif %}
                                 {% else %}
                                     <span class="homework-empty">Нет задания</span>
                                 {% endif %}
@@ -401,6 +418,9 @@
                             <div class="homework-cell">
                                 {% if lesson.homework %}
                                     {{ lesson.homework.description }}
+                                    {% if lesson.homework.file %}
+                                        <br><a href="{{ lesson.homework.file.url }}" target="_blank">📎 Скачать файл</a>
+                                    {% endif %}
                                 {% else %}
                                     <span class="homework-empty">Нет задания</span>
                                 {% endif %}

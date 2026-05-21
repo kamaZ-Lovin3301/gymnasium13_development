@@ -360,6 +360,9 @@
                         <td class="homework-cell">
                             {% if lesson.homework %}
                                 {{ lesson.homework.description }}
+                                {% if lesson.homework.file %}
+                                    <br><a href="{{ lesson.homework.file.url }}" target="_blank" class="file-link">📎 Скачать файл</a>
+                                {% endif %}
                             {% else %}
                                 <span class="homework-empty">—</span>
                             {% endif %}

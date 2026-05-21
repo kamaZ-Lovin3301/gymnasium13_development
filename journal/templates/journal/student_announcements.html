@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Объявления</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; }
+        .container { max-width: 800px; margin: auto; background: white; border-radius: 15px; padding: 30px; }
+        h1 { color: #2d3748; }
+        .announcement { border-bottom: 1px solid #e2e8f0; padding: 15px 0; }
+        .date { color: #718096; font-size: 12px; }
+        .nav-btn { display: inline-block; margin-bottom: 20px; padding: 8px 15px; background: #667eea; color: white; text-decoration: none; border-radius: 8px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <a href="{% url 'student_schedule' %}" class="nav-btn">← Назад</a>
+    <h1>📢 Объявления классного руководителя</h1>
+    {% for ann in announcements %}
+        <div class="announcement">
+            <h3>{{ ann.title }}</h3>
+            <div class="date">{{ ann.created_at|date:"d.m.Y H:i" }}</div>
+            <p>{{ ann.text|linebreaksbr }}</p>
+        </div>
+    {% empty %}
+        <p>Нет объявлений.</p>
+    {% endfor %}
+</div>
+</body>
+</html>

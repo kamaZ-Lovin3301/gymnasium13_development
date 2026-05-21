@@ -202,6 +202,9 @@
         <div class="top-header">
             <div class="nav-buttons">
                 <a href="{% url 'teacher_journal' %}" class="nav-btn">📖 Управление оценками</a>
+                {% if show_homeroom_link %}
+                    <a href="{% url 'announcements_for_class' %}" class="nav-btn">📢 Объявления классу</a>
+                {% endif %}
                 <a href="{% url 'logout' %}" class="nav-btn">🚪 Выйти</a>
                 {% if show_homeroom_link %}
                     <a href="{% url 'homeroom_dashboard' %}" class="nav-btn">👨‍🏫 Классное руководство</a>

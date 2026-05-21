@@ -225,6 +225,13 @@
         <div class="homework-section">
             <h3>📖 Домашнее задание</h3>
             <textarea id="homeworkText" class="homework-textarea" placeholder="Введите текст домашнего задания...">{% if homework %}{{ homework.description }}{% endif %}</textarea>
+            <div style="margin-top: 10px;">
+                <label for="homeworkFile">Прикрепить файл:</label>
+                <input type="file" id="homeworkFile" accept=".pdf,.doc,.docx,.txt,.jpg,.png">
+                {% if homework and homework.file %}
+                    <div>Текущий файл: <a href="{{ homework.file.url }}" target="_blank">{{ homework.file.name }}</a></div>
+                {% endif %}
+            </div>
             <button id="saveAllGradesBtn" class="save-btn" style="background-color: #48bb78; margin-bottom: 10px;">💾 Сохранить все оценки</button>
             <button id="saveHomeworkBtn" class="save-btn">Сохранить домашнее задание</button>
         </div>
@@ -299,10 +306,15 @@
             }
 
             const description = document.getElementById('homeworkText').value;
+            const fileInput = document.getElementById('homeworkFile');
+            const file = fileInput.files[0];
 
             const formData = new FormData();
             formData.append('schedule_id', currentScheduleId);
             formData.append('description', description);
+            if (file) {
+                formData.append('file', file);
+            }
 
             try {
                 const response = await fetch('{% url "set_homework" %}', {
@@ -312,10 +324,13 @@
                     },
                     body: formData
                 });
-
                 const data = await response.json();
                 if (data.success) {
                     showSuccess();
+                    if (data.file_url) {
+                        const fileDiv = document.querySelector('.homework-section div:has(> a)');
+                        if (fileDiv) fileDiv.innerHTML = `Текущий файл: <a href="${data.file_url}" target="_blank">${data.file_name}</a>`;
+                    }
                 } else {
                     showError(data.error || 'Ошибка сохранения');
                 }

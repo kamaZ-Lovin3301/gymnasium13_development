@@ -3,10 +3,11 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.http import JsonResponse, HttpResponse
 from django.db.models import Avg
 from openpyxl import Workbook
-from .models import Teacher, Schedule, Class, Subject, Student, Grade, Homework, Parent, ParentStudent
-
+from .models import Teacher, Schedule, Class, Subject, Student, Grade, Homework, Parent, ParentStudent, Announcement
+from django.core.files.storage import default_storage
+from django.core.files.base import ContentFile
 def get_teacher_from_request(request):
-    """Возвращает объект Teacher"""
+    #Возвращает объект Teacher
     if not request.user.is_authenticated:
         return None
     try:
@@ -16,7 +17,7 @@ def get_teacher_from_request(request):
         return None
 
 def get_student_from_request(request):
-    """Возвращает объект Student"""
+    #Возвращает объект Student
     if not request.user.is_authenticated:
         return None
     try:
@@ -58,7 +59,7 @@ def select_subject(request, class_id):
     return render(request, 'journal/select_subject.html', context)
 
 
-# Страница журнала (оценки и ДЗ)
+#Страница журнала (оценки и ДЗ)
 def journal_page(request, class_id, subject_id):
     teacher = get_teacher_from_request(request)
     if not teacher:
@@ -97,7 +98,7 @@ def journal_page(request, class_id, subject_id):
     return render(request, 'journal/journal_page.html', context)
 
 
-# Выставить оценку
+#Выставить оценку
 def set_grade(request):
     if request.method == 'POST':
         teacher = get_teacher_from_request(request)
@@ -114,11 +115,9 @@ def set_grade(request):
 
         schedule = get_object_or_404(Schedule, id=schedule_id)
 
-        # Проверка прав
         if schedule.teacher_id != teacher.id:
             return JsonResponse({'error': 'Нет прав'}, status=403)
 
-        # Сохраняем оценку
         grade, created = Grade.objects.update_or_create(
             student_id=student_id,
             schedule=schedule,
@@ -131,7 +130,7 @@ def set_grade(request):
     return JsonResponse({'error': 'Метод не разрешен'}, status=405)
 
 
-# Сохранить домашнее задание
+#Сохранить домашнее задание
 def set_homework(request):
     if request.method == 'POST':
         teacher = get_teacher_from_request(request)
@@ -140,6 +139,7 @@ def set_homework(request):
 
         schedule_id = request.POST.get('schedule_id')
         description = request.POST.get('description')
+        file = request.FILES.get('file')
 
         if not schedule_id:
             return JsonResponse({'error': 'Не указан урок'}, status=400)
@@ -154,10 +154,81 @@ def set_homework(request):
             defaults={'description': description or ''}
         )
 
-        return JsonResponse({'success': True})
+        if file:
+            if homework.file:
+                default_storage.delete(homework.file.name)
+            file_name = f'homework/{schedule.id}_{file.name}'
+            saved_path = default_storage.save(file_name, ContentFile(file.read()))
+            homework.file = saved_path
+            homework.save()
+
+        return JsonResponse({
+            'success': True,
+            'file_url': homework.file.url if homework.file else None,
+            'file_name': homework.file.name if homework.file else None
+        })
 
     return JsonResponse({'error': 'Метод не разрешен'}, status=405)
 
+
+def announcements_for_class(request):
+    teacher = get_teacher_from_request(request)
+    if not teacher or not teacher.homeroom_class:
+        return redirect('teacher_journal')
+
+    class_obj = teacher.homeroom_class
+
+    if request.method == 'POST':
+        title = request.POST.get('title')
+        text = request.POST.get('text')
+        if title and text:
+            Announcement.objects.create(
+                title=title,
+                text=text,
+                class_id=class_obj,
+                teacher=teacher
+            )
+            return redirect('announcements_for_class')
+
+    announcements = Announcement.objects.filter(class_id=class_obj).order_by('-created_at')
+    return render(request, 'journal/announcements_for_class.html', {
+        'teacher': teacher,
+        'class_obj': class_obj,
+        'announcements': announcements,
+    })
+
+
+def student_announcements(request):
+    student = get_student_from_request(request)
+    if not student:
+        return redirect('teacher_journal')
+
+    announcements = Announcement.objects.filter(class_id=student.class_id).order_by('-created_at')
+    return render(request, 'journal/student_announcements.html', {
+        'student': student,
+        'announcements': announcements,
+    })
+
+
+def parent_announcements(request, child_id):
+    parent = get_parent_from_request(request)
+    if not parent:
+        return redirect('teacher_journal')
+
+    try:
+        student = Student.objects.get(id=child_id, parentstudent__parent=parent)
+    except Student.DoesNotExist:
+        return redirect('parent_select_child')
+
+    announcements = Announcement.objects.filter(class_id=student.class_id).order_by('-created_at')
+    children = Student.objects.filter(parentstudent__parent=parent)
+
+    return render(request, 'journal/parent_announcements.html', {
+        'student': student,
+        'announcements': announcements,
+        'children': children,
+        'parent': parent,
+    })
 
 def teacher_schedule(request):
     teacher = get_teacher_from_request(request)
@@ -317,9 +388,6 @@ def student_diary(request):
     })
 
 
-from django.db.models import Avg
-
-
 def get_quarter_date_range(quarter, year=None):
     if year is None:
         year = date.today().year
@@ -433,7 +501,6 @@ def parent_schedule(request, child_id):
     except Student.DoesNotExist:
         return redirect('parent_select_child')
 
-    # Получаем всех детей родителя
     children = Student.objects.filter(parentstudent__parent=parent)
 
     schedule = Schedule.objects.filter(class_id=student.class_id).select_related('subject', 'teacher', 'room').order_by(
@@ -464,7 +531,7 @@ def parent_schedule(request, child_id):
         'schedule_list': schedule_list,
         'student': student,
         'parent': parent,
-        'children': children,  # ДОБАВИТЬ ЭТУ СТРОКУ
+        'children': children,
         'current_month': today.strftime('%B %Y').capitalize()
     })
 
@@ -575,9 +642,8 @@ def parent_quarter_grades(request, child_id):
         'children': children,
     })
 
-from django.db.models import Avg
 from django.http import HttpResponse
-from openpyxl import Workbook  # нужно установить pip install openpyxl
+from openpyxl import Workbook
 
 def homeroom_dashboard(request):
     teacher = get_teacher_from_request(request)
@@ -588,10 +654,8 @@ def homeroom_dashboard(request):
     if not homeroom_class:
         return render(request, 'journal/not_homeroom.html', {'teacher': teacher})
 
-    # Все ученики класса
     students = Student.objects.filter(class_id=homeroom_class).order_by('last_name', 'first_name')
 
-    # Предметы, которые есть в расписании этого класса
     subjects = Subject.objects.filter(schedule__class_id=homeroom_class).distinct().order_by('name')
 
     selected_subject_id = request.GET.get('subject_id')
@@ -642,7 +706,6 @@ def export_homeroom_grades(request):
     ws = wb.active
     ws.title = f"{homeroom_class.grade}{homeroom_class.letter}_{subject.name}"
 
-    # Заголовки
     ws['A1'] = 'Фамилия'
     ws['B1'] = 'Имя'
     ws['C1'] = 'Средний балл'
@@ -667,3 +730,6 @@ def export_homeroom_grades(request):
     response['Content-Disposition'] = f'attachment; filename="success_{homeroom_class.grade}{homeroom_class.letter}_{subject.name}.xlsx"'
     wb.save(response)
     return response
+
+def guest_home(request):
+    return render(request, 'journal/guest_home.html')
